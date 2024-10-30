@@ -111,7 +111,7 @@
 
     <!-- الشعار -->
     <header>
-        <div>@IT_abdalla</div>
+        <div>wafaa salem shalash</div>
     </header>
 
     <!-- شريط التنقل -->
