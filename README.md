@@ -111,7 +111,7 @@
 
     <!-- الشعار -->
     <header>
-        <div>wafaa salem shalash</div>
+        <div>my_cat</div>
     </header>
 
     <!-- شريط التنقل -->
