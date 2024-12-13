@@ -111,7 +111,7 @@
 
     <!-- الشعار -->
     <header>
-        <div>my_cat</div>
+        <div>zain</div>
     </header>
 
     <!-- شريط التنقل -->
