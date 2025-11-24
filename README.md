@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لعبة الدودة</title>
+    <title>لعبة الدودة - السرعة المتزايدة</title>
     <style>
         * {
             margin: 0;
@@ -54,18 +54,22 @@
             margin-bottom: 10px;
         }
         
-        .score-container, .high-score-container {
+        .score-container, .high-score-container, .speed-container {
             text-align: center;
         }
         
-        .score-label, .high-score-label {
+        .score-label, .high-score-label, .speed-label {
             font-size: 1.2rem;
             margin-bottom: 5px;
         }
         
-        .score-value, .high-score-value {
+        .score-value, .high-score-value, .speed-value {
             font-size: 2rem;
             font-weight: bold;
+        }
+        
+        .speed-value {
+            color: #ffcc00;
         }
         
         .game-area {
@@ -220,6 +224,23 @@
             grid-row: 3;
         }
         
+        .speed-indicator {
+            width: 100%;
+            max-width: 600px;
+            height: 20px;
+            background-color: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        
+        .speed-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #ffcc00, #ff5252);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        
         @media (max-width: 768px) {
             h1 {
                 font-size: 2.5rem;
@@ -254,8 +275,8 @@
 <body>
     <div class="container">
         <header>
-            <h1>لعبة الدودة</h1>
-            <p>توجيه الدودة لتناول الطعام وتجنب الاصطدام بالجدران أو جسمك!</p>
+            <h1>لعبة الدودة - السرعة المتزايدة</h1>
+            <p>توجيه الدودة لتناول الطعام، ولكن احذر! السرعة تزداد بعد كل وجبة!</p>
         </header>
         
         <div class="game-info">
@@ -267,6 +288,14 @@
                 <div class="high-score-label">أفضل نتيجة</div>
                 <div class="high-score-value">0</div>
             </div>
+            <div class="speed-container">
+                <div class="speed-label">السرعة</div>
+                <div class="speed-value">1x</div>
+            </div>
+        </div>
+        
+        <div class="speed-indicator">
+            <div class="speed-bar"></div>
         </div>
         
         <div class="game-area">
@@ -274,6 +303,7 @@
             <div class="game-over">
                 <h2>انتهت اللعبة!</h2>
                 <p>نقاطك: <span id="final-score">0</span></p>
+                <p>السرعة القصوى: <span id="final-speed">1x</span></p>
                 <button id="play-again-btn">العب مرة أخرى</button>
             </div>
         </div>
@@ -297,6 +327,7 @@
             <h2>كيفية اللعب</h2>
             <p>استخدم مفاتيح الأسهم على لوحة المفاتيح للتحكم في اتجاه الدودة</p>
             <p>تناول الطعام الأحمر لزيادة طول الدودة وزيادة نقاطك</p>
+            <p>السرعة تزداد بعد كل وجبة - كن حذراً!</p>
             <p>تجنب الاصطدام بالجدران أو بجسم الدودة نفسه</p>
         </div>
     </div>
@@ -307,7 +338,9 @@
         const ctx = canvas.getContext('2d');
         const scoreValue = document.querySelector('.score-value');
         const highScoreValue = document.querySelector('.high-score-value');
+        const speedValue = document.querySelector('.speed-value');
         const finalScore = document.getElementById('final-score');
+        const finalSpeed = document.getElementById('final-speed');
         const startBtn = document.getElementById('start-btn');
         const pauseBtn = document.getElementById('pause-btn');
         const restartBtn = document.getElementById('restart-btn');
@@ -317,6 +350,7 @@
         const leftBtn = document.querySelector('.left-btn');
         const rightBtn = document.querySelector('.right-btn');
         const downBtn = document.querySelector('.down-btn');
+        const speedBar = document.querySelector('.speed-bar');
 
         // إعدادات اللعبة
         const gridSize = 20;
@@ -324,7 +358,10 @@
         let food = {};
         let direction = 'right';
         let nextDirection = 'right';
-        let gameSpeed = 150;
+        let baseSpeed = 150; // السرعة الأساسية (أقل سرعة)
+        let currentSpeed = baseSpeed;
+        let speedMultiplier = 1; // مضاعف السرعة
+        let maxSpeedMultiplier = 10; // أقصى مضاعف للسرعة
         let score = 0;
         let highScore = localStorage.getItem('snakeHighScore') || 0;
         let gameInterval;
@@ -348,8 +385,12 @@
             ];
             direction = 'right';
             nextDirection = 'right';
+            currentSpeed = baseSpeed;
+            speedMultiplier = 1;
             score = 0;
             scoreValue.textContent = score;
+            speedValue.textContent = '1x';
+            speedBar.style.width = '0%';
             isGameOver = false;
             gameOverScreen.classList.remove('active');
             
@@ -447,6 +488,33 @@
             }
         }
 
+        // زيادة السرعة
+        function increaseSpeed() {
+            // زيادة مضاعف السرعة
+            speedMultiplier += 0.5;
+            
+            // تحديد السرعة الجديدة (لا يمكن أن تتجاوز الحد الأقصى)
+            if (speedMultiplier > maxSpeedMultiplier) {
+                speedMultiplier = maxSpeedMultiplier;
+            }
+            
+            // حساب السرعة الجديدة (كلما زاد المضاعف، قلت الفترة الزمنية بين الحركات)
+            currentSpeed = Math.max(30, baseSpeed / speedMultiplier);
+            
+            // تحديث عرض السرعة
+            speedValue.textContent = speedMultiplier.toFixed(1) + 'x';
+            
+            // تحديث شريط السرعة
+            const speedPercentage = ((speedMultiplier - 1) / (maxSpeedMultiplier - 1)) * 100;
+            speedBar.style.width = speedPercentage + '%';
+            
+            // إعادة ضبط الفاصل الزمني للعبة بالسرعة الجديدة
+            if (gameInterval) {
+                clearInterval(gameInterval);
+                gameInterval = setInterval(gameLoop, currentSpeed);
+            }
+        }
+
         // تحديث حالة اللعبة
         function update() {
             if (isPaused || isGameOver) return;
@@ -500,15 +568,11 @@
                 score += 10;
                 scoreValue.textContent = score;
                 
+                // زيادة السرعة
+                increaseSpeed();
+                
                 // إنشاء طعام جديد
                 generateFood();
-                
-                // زيادة السرعة تدريجياً
-                if (score % 50 === 0 && gameSpeed > 50) {
-                    gameSpeed -= 10;
-                    clearInterval(gameInterval);
-                    gameInterval = setInterval(gameLoop, gameSpeed);
-                }
             } else {
                 // إزالة الذيل إذا لم يتم أكل الطعام
                 snake.pop();
@@ -537,6 +601,7 @@
             
             // عرض شاشة انتهاء اللعبة
             finalScore.textContent = score;
+            finalSpeed.textContent = speedMultiplier.toFixed(1) + 'x';
             gameOverScreen.classList.add('active');
         }
 
@@ -548,7 +613,7 @@
             
             isPaused = false;
             pauseBtn.textContent = 'إيقاف مؤقت';
-            gameInterval = setInterval(gameLoop, gameSpeed);
+            gameInterval = setInterval(gameLoop, currentSpeed);
         }
 
         // إيقاف/استئناف اللعبة
