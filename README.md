@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لعبة اضرب بنين!</title>
+    <title>لعبة اضرب امير!</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -68,12 +68,12 @@
     </style>
 </head>
 <body>
-    <h1>🎯 اضرب بنين خلال 10 ثوانٍ!</h1>
+    <h1>🎯 اضرب امير خلال 10 ثوانٍ!</h1>
     <div id="timer">الوقت المتبقي: 10</div>
     <div id="score">النقاط: 0</div>
     <div id="result"></div>
     <div id="game">
-        <div id="target">بنين</div>
+        <div id="target">امير</div>
     </div>
     <button onclick="startGame()">ابدأ اللعبة</button>
     <button onclick="resetGame()">إعادة التشغيل</button>
