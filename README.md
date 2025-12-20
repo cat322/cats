@@ -1,691 +1,150 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
-<head> 
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لعبة الدودة - السرعة المتزايدة</title>
+    <title>متجري الشامل</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
+        :root { --primary: #2c3e50; --accent: #3498db; --white: #ffffff; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f4f4; margin: 0; }
+        .container { max-width: 800px; margin: 20px auto; padding: 20px; }
+        .hidden { display: none; }
         
-        body {
-            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
-            color: white;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
+        /* تصميم الصفحات */
+        .card { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; }
+        input, select { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
+        button { background: var(--accent); color: white; border: none; padding: 12px 25px; border-radius: 5px; cursor: pointer; transition: 0.3s; }
+        button:hover { background: #2980b9; }
+
+        /* الأقسام والمنتجات */
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; margin-top: 20px; }
+        .product-item { background: white; padding: 15px; border-radius: 8px; border: 1px solid #eee; text-align: center; }
+        .product-item img { max-width: 100px; height: auto; margin-bottom: 10px; }
         
-        .container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 20px;
-            max-width: 800px;
-            width: 100%;
-        }
-        
-        header {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        
-        h1 {
-            font-size: 3rem;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-        }
-        
-        .game-info {
-            display: flex;
-            justify-content: space-between;
-            width: 100%;
-            max-width: 600px;
-            background-color: rgba(0, 0, 0, 0.3);
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 10px;
-        }
-        
-        .score-container, .high-score-container, .speed-container {
-            text-align: center;
-        }
-        
-        .score-label, .high-score-label, .speed-label {
-            font-size: 1.2rem;
-            margin-bottom: 5px;
-        }
-        
-        .score-value, .high-score-value, .speed-value {
-            font-size: 2rem;
-            font-weight: bold;
-        }
-        
-        .speed-value {
-            color: #ffcc00;
-        }
-        
-        .game-area {
-            position: relative;
-            width: 100%;
-            max-width: 600px;
-            aspect-ratio: 1/1;
-            background-color: rgba(0, 0, 0, 0.5);
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
-        }
-        
-        canvas {
-            display: block;
-            width: 100%;
-            height: 100%;
-        }
-        
-        .controls {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 15px;
-            margin-top: 20px;
-        }
-        
-        .buttons {
-            display: flex;
-            gap: 15px;
-        }
-        
-        button {
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            font-size: 1.1rem;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        }
-        
-        button:hover {
-            background-color: #45a049;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
-        }
-        
-        button:active {
-            transform: translateY(0);
-        }
-        
-        #restart-btn {
-            background-color: #f44336;
-        }
-        
-        #restart-btn:hover {
-            background-color: #d32f2f;
-        }
-        
-        .instructions {
-            background-color: rgba(0, 0, 0, 0.3);
-            padding: 20px;
-            border-radius: 10px;
-            margin-top: 20px;
-            max-width: 600px;
-            text-align: center;
-        }
-        
-        .instructions h2 {
-            margin-bottom: 10px;
-        }
-        
-        .instructions p {
-            margin-bottom: 10px;
-            line-height: 1.6;
-        }
-        
-        .game-over {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.8);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 10;
-            border-radius: 10px;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.5s ease;
-        }
-        
-        .game-over.active {
-            opacity: 1;
-            pointer-events: all;
-        }
-        
-        .game-over h2 {
-            font-size: 3rem;
-            margin-bottom: 20px;
-            color: #ff5252;
-        }
-        
-        .game-over p {
-            font-size: 1.5rem;
-            margin-bottom: 30px;
-        }
-        
-        .mobile-controls {
-            display: none;
-            grid-template-columns: repeat(3, 1fr);
-            grid-template-rows: repeat(3, 1fr);
-            gap: 10px;
-            margin-top: 20px;
-            width: 200px;
-            height: 200px;
-        }
-        
-        .mobile-controls button {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            background-color: rgba(255, 255, 255, 0.2);
-        }
-        
-        .up-btn {
-            grid-column: 2;
-            grid-row: 1;
-        }
-        
-        .left-btn {
-            grid-column: 1;
-            grid-row: 2;
-        }
-        
-        .right-btn {
-            grid-column: 3;
-            grid-row: 2;
-        }
-        
-        .down-btn {
-            grid-column: 2;
-            grid-row: 3;
-        }
-        
-        .speed-indicator {
-            width: 100%;
-            max-width: 600px;
-            height: 20px;
-            background-color: rgba(0, 0, 0, 0.3);
-            border-radius: 10px;
-            overflow: hidden;
-            margin-top: 10px;
-        }
-        
-        .speed-bar {
-            height: 100%;
-            background: linear-gradient(90deg, #4CAF50, #ffcc00, #ff5252);
-            width: 0%;
-            transition: width 0.5s ease;
-        }
-        
-        @media (max-width: 768px) {
-            h1 {
-                font-size: 2.5rem;
-            }
-            
-            .mobile-controls {
-                display: grid;
-            }
-            
-            .instructions {
-                font-size: 0.9rem;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            h1 {
-                font-size: 2rem;
-            }
-            
-            .game-info {
-                flex-direction: column;
-                gap: 10px;
-            }
-            
-            .mobile-controls {
-                width: 150px;
-                height: 150px;
-            }
-        }
+        /* السلة */
+        .cart-status { background: #e74c3c; color: white; padding: 5px 10px; border-radius: 50%; font-size: 12px; }
+        nav { background: var(--primary); color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
     </style>
 </head>
 <body>
+
+    <nav id="navbar" class="hidden">
+        <span>متجري الشامل</span>
+        <div>
+            <span onclick="showPage('categories')" style="cursor:pointer">الأقسام</span> | 
+            <span onclick="showPage('cart-page')" style="cursor:pointer">السلة (<span id="cart-count">0</span>)</span>
+        </div>
+    </nav>
+
     <div class="container">
-        <header>
-            <h1>لعبة الدودة - السرعة المتزايدة</h1>
-            <p>توجيه الدودة لتناول الطعام، ولكن احذر! السرعة تزداد بعد كل وجبة!</p>
-        </header>
         
-        <div class="game-info">
-            <div class="score-container">
-                <div class="score-label">النقاط</div>
-                <div class="score-value">0</div>
-            </div>
-            <div class="high-score-container">
-                <div class="high-score-label">أفضل نتيجة</div>
-                <div class="high-score-value">0</div>
-            </div>
-            <div class="speed-container">
-                <div class="speed-label">السرعة</div>
-                <div class="speed-value">1x</div>
+        <div id="login-page" class="card">
+            <h2>تسجيل الدخول للمتجر</h2>
+            <input type="text" id="username" placeholder="اسم المستخدم">
+            <input type="password" placeholder="كلمة المرور">
+            <button onclick="login()">دخول</button>
+        </div>
+
+        <div id="categories-page" class="card hidden">
+            <h3>مرحباً <span id="user-name-display"></span>، اختر القسم:</h3>
+            <div class="grid">
+                <button onclick="loadProducts('إلكترونيات')">إلكترونيات</button>
+                <button onclick="loadProducts('ملابس')">ملابس</button>
+                <button onclick="loadProducts('منزل')">أدوات منزلية</button>
+                <button onclick="loadProducts('ألعاب')">ألعاب</button>
             </div>
         </div>
-        
-        <div class="speed-indicator">
-            <div class="speed-bar"></div>
-        </div>
-        
-        <div class="game-area">
-            <canvas id="game-canvas"></canvas>
-            <div class="game-over">
-                <h2>انتهت اللعبة!</h2>
-                <p>نقاطك: <span id="final-score">0</span></p>
-                <p>السرعة القصوى: <span id="final-speed">1x</span></p>
-                <button id="play-again-btn">العب مرة أخرى</button>
+
+        <div id="products-page" class="hidden">
+            <div style="display: flex; gap: 10px;">
+                <button onclick="showPage('categories')">العودة للأقسام</button>
+                <input type="text" id="searchBar" placeholder="ابحث عن منتج في هذا القسم..." onkeyup="searchProducts()">
             </div>
+            <h2 id="category-title"></h2>
+            <div id="products-list" class="grid"></div>
         </div>
-        
-        <div class="controls">
-            <div class="buttons">
-                <button id="start-btn">بدء اللعبة</button>
-                <button id="pause-btn">إيقاف مؤقت</button>
-                <button id="restart-btn">إعادة تشغيل</button>
-            </div>
-            
-            <div class="mobile-controls">
-                <button class="up-btn">↑</button>
-                <button class="left-btn">←</button>
-                <button class="right-btn">→</button>
-                <button class="down-btn">↓</button>
-            </div>
+
+        <div id="cart-page" class="card hidden">
+            <h2>سلة المشتريات</h2>
+            <div id="cart-items"></div>
+            <hr>
+            <h3>الإجمالي: <span id="total-price">0</span>$</h3>
+            <button onclick="alert('شكراً لشرائك!')">إتمام الشراء</button>
         </div>
-        
-        <div class="instructions">
-            <h2>كيفية اللعب</h2>
-            <p>استخدم مفاتيح الأسهم على لوحة المفاتيح للتحكم في اتجاه الدودة</p>
-            <p>تناول الطعام الأحمر لزيادة طول الدودة وزيادة نقاطك</p>
-            <p>السرعة تزداد بعد كل وجبة - كن حذراً!</p>
-            <p>تجنب الاصطدام بالجدران أو بجسم الدودة نفسه</p>
-        </div>
+
     </div>
 
     <script>
-        // عناصر DOM
-        const canvas = document.getElementById('game-canvas');
-        const ctx = canvas.getContext('2d');
-        const scoreValue = document.querySelector('.score-value');
-        const highScoreValue = document.querySelector('.high-score-value');
-        const speedValue = document.querySelector('.speed-value');
-        const finalScore = document.getElementById('final-score');
-        const finalSpeed = document.getElementById('final-speed');
-        const startBtn = document.getElementById('start-btn');
-        const pauseBtn = document.getElementById('pause-btn');
-        const restartBtn = document.getElementById('restart-btn');
-        const playAgainBtn = document.getElementById('play-again-btn');
-        const gameOverScreen = document.querySelector('.game-over');
-        const upBtn = document.querySelector('.up-btn');
-        const leftBtn = document.querySelector('.left-btn');
-        const rightBtn = document.querySelector('.right-btn');
-        const downBtn = document.querySelector('.down-btn');
-        const speedBar = document.querySelector('.speed-bar');
+        let currentUser = "";
+        let cart = [];
+        const data = {
+            'إلكترونيات': [{id:1, name: 'هاتف ذكي', price: 500}, {id:2, name: 'لابتوب', price: 1200}],
+            'ملابس': [{id:3, name: 'قميص', price: 25}, {id:4, name: 'حذاء رياضي', price: 60}],
+            'منزل': [{id:5, name: 'خلاط', price: 40}, {id:6, name: 'مصباح', price: 15}],
+            'ألعاب': [{id:7, name: 'بلايستيشن', price: 450}, {id:8, name: 'كرة قدم', price: 20}]
+        };
 
-        // إعدادات اللعبة
-        const gridSize = 20;
-        let snake = [];
-        let food = {};
-        let direction = 'right';
-        let nextDirection = 'right';
-        let baseSpeed = 150; // السرعة الأساسية (أقل سرعة)
-        let currentSpeed = baseSpeed;
-        let speedMultiplier = 1; // مضاعف السرعة
-        let maxSpeedMultiplier = 10; // أقصى مضاعف للسرعة
-        let score = 0;
-        let highScore = localStorage.getItem('snakeHighScore') || 0;
-        let gameInterval;
-        let isPaused = false;
-        let isGameOver = false;
-
-        // تعيين أفضل نتيجة
-        highScoreValue.textContent = highScore;
-
-        // تهيئة اللعبة
-        function initGame() {
-            // تعيين حجم الـ canvas
-            canvas.width = canvas.offsetWidth;
-            canvas.height = canvas.offsetHeight;
-            
-            // إعادة تعيين المتغيرات
-            snake = [
-                {x: 5, y: 10},
-                {x: 4, y: 10},
-                {x: 3, y: 10}
-            ];
-            direction = 'right';
-            nextDirection = 'right';
-            currentSpeed = baseSpeed;
-            speedMultiplier = 1;
-            score = 0;
-            scoreValue.textContent = score;
-            speedValue.textContent = '1x';
-            speedBar.style.width = '0%';
-            isGameOver = false;
-            gameOverScreen.classList.remove('active');
-            
-            // إنشاء الطعام الأول
-            generateFood();
-            
-            // رسم اللعبة
-            draw();
+        function showPage(pageId) {
+            ['login-page', 'categories-page', 'products-page', 'cart-page'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+            document.getElementById(pageId + (pageId.includes('-page') ? '' : '-page')).classList.remove('hidden');
         }
 
-        // رسم عناصر اللعبة
-        function draw() {
-            // مسح الـ canvas
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
-            // رسم الشبكة
-            drawGrid();
-            
-            // رسم الدودة
-            snake.forEach((segment, index) => {
-                if (index === 0) {
-                    // رأس الدودة
-                    ctx.fillStyle = '#4CAF50';
+        function login() {
+            currentUser = document.getElementById('username').value;
+            if(currentUser) {
+                document.getElementById('user-name-display').innerText = currentUser;
+                document.getElementById('navbar').classList.remove('hidden');
+                showPage('categories');
+            } else { alert("يرجى إدخال الاسم"); }
+        }
+
+        function loadProducts(cat) {
+            const list = document.getElementById('products-list');
+            document.getElementById('category-title').innerText = "قسم " + cat;
+            list.innerHTML = "";
+            data[cat].forEach(prod => {
+                list.innerHTML += `
+                    <div class="product-item">
+                        <h4>${prod.name}</h4>
+                        <p>${prod.price}$</p>
+                        <button onclick="addToCart('${prod.name}', ${prod.price})">إضافة للسلة</button>
+                    </div>`;
+            });
+            showPage('products');
+        }
+
+        function addToCart(name, price) {
+            cart.push({name, price});
+            updateCart();
+            alert(name + " أضيف للسلة");
+        }
+
+        function updateCart() {
+            document.getElementById('cart-count').innerText = cart.length;
+            const cartList = document.getElementById('cart-items');
+            const totalDisplay = document.getElementById('total-price');
+            cartList.innerHTML = "";
+            let total = 0;
+            cart.forEach(item => {
+                cartList.innerHTML += `<p>${item.name} - ${item.price}$</p>`;
+                total += item.price;
+            });
+            totalDisplay.innerText = total;
+        }
+
+        function searchProducts() {
+            let input = document.getElementById('searchBar').value.toLowerCase();
+            let items = document.getElementsByClassName('product-item');
+            for (let i = 0; i < items.length; i++) {
+                if (!items[i].innerHTML.toLowerCase().includes(input)) {
+                    items[i].style.display = "none";
                 } else {
-                    // جسم الدودة
-                    ctx.fillStyle = '#8BC34A';
-                }
-                ctx.fillRect(segment.x * gridSize, segment.y * gridSize, gridSize, gridSize);
-                
-                // إضافة حدود للدودة
-                ctx.strokeStyle = '#33691E';
-                ctx.strokeRect(segment.x * gridSize, segment.y * gridSize, gridSize, gridSize);
-            });
-            
-            // رسم الطعام
-            ctx.fillStyle = '#FF5252';
-            ctx.beginPath();
-            ctx.arc(
-                food.x * gridSize + gridSize/2, 
-                food.y * gridSize + gridSize/2, 
-                gridSize/2, 0, Math.PI * 2
-            );
-            ctx.fill();
-            
-            // رسم تأثير للطعام
-            ctx.fillStyle = 'rgba(255, 82, 82, 0.5)';
-            ctx.beginPath();
-            ctx.arc(
-                food.x * gridSize + gridSize/2, 
-                food.y * gridSize + gridSize/2, 
-                gridSize/2 + 2, 0, Math.PI * 2
-            );
-            ctx.fill();
-        }
-
-        // رسم الشبكة
-        function drawGrid() {
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
-            ctx.lineWidth = 1;
-            
-            // الخطوط العمودية
-            for (let x = 0; x <= canvas.width; x += gridSize) {
-                ctx.beginPath();
-                ctx.moveTo(x, 0);
-                ctx.lineTo(x, canvas.height);
-                ctx.stroke();
-            }
-            
-            // الخطوط الأفقية
-            for (let y = 0; y <= canvas.height; y += gridSize) {
-                ctx.beginPath();
-                ctx.moveTo(0, y);
-                ctx.lineTo(canvas.width, y);
-                ctx.stroke();
-            }
-        }
-
-        // إنشاء الطعام في مكان عشوائي
-        function generateFood() {
-            const maxX = Math.floor(canvas.width / gridSize);
-            const maxY = Math.floor(canvas.height / gridSize);
-            
-            food = {
-                x: Math.floor(Math.random() * maxX),
-                y: Math.floor(Math.random() * maxY)
-            };
-            
-            // التأكد من أن الطعام لا يظهر على الدودة
-            for (let segment of snake) {
-                if (segment.x === food.x && segment.y === food.y) {
-                    generateFood();
-                    break;
+                    items[i].style.display = "block";
                 }
             }
         }
-
-        // زيادة السرعة
-        function increaseSpeed() {
-            // زيادة مضاعف السرعة
-            speedMultiplier += 0.5;
-            
-            // تحديد السرعة الجديدة (لا يمكن أن تتجاوز الحد الأقصى)
-            if (speedMultiplier > maxSpeedMultiplier) {
-                speedMultiplier = maxSpeedMultiplier;
-            }
-            
-            // حساب السرعة الجديدة (كلما زاد المضاعف، قلت الفترة الزمنية بين الحركات)
-            currentSpeed = Math.max(30, baseSpeed / speedMultiplier);
-            
-            // تحديث عرض السرعة
-            speedValue.textContent = speedMultiplier.toFixed(1) + 'x';
-            
-            // تحديث شريط السرعة
-            const speedPercentage = ((speedMultiplier - 1) / (maxSpeedMultiplier - 1)) * 100;
-            speedBar.style.width = speedPercentage + '%';
-            
-            // إعادة ضبط الفاصل الزمني للعبة بالسرعة الجديدة
-            if (gameInterval) {
-                clearInterval(gameInterval);
-                gameInterval = setInterval(gameLoop, currentSpeed);
-            }
-        }
-
-        // تحديث حالة اللعبة
-        function update() {
-            if (isPaused || isGameOver) return;
-            
-            // تحديث اتجاه الدودة
-            direction = nextDirection;
-            
-            // حساب موضع الرأس الجديد
-            const head = {...snake[0]};
-            
-            switch(direction) {
-                case 'up':
-                    head.y -= 1;
-                    break;
-                case 'down':
-                    head.y += 1;
-                    break;
-                case 'left':
-                    head.x -= 1;
-                    break;
-                case 'right':
-                    head.x += 1;
-                    break;
-            }
-            
-            // التحقق من الاصطدام بالجدران
-            if (
-                head.x < 0 || 
-                head.y < 0 || 
-                head.x >= canvas.width / gridSize || 
-                head.y >= canvas.height / gridSize
-            ) {
-                gameOver();
-                return;
-            }
-            
-            // التحقق من الاصطدام بالنفس
-            for (let segment of snake) {
-                if (head.x === segment.x && head.y === segment.y) {
-                    gameOver();
-                    return;
-                }
-            }
-            
-            // إضافة الرأس الجديد
-            snake.unshift(head);
-            
-            // التحقق من أكل الطعام
-            if (head.x === food.x && head.y === food.y) {
-                // زيادة النقاط
-                score += 10;
-                scoreValue.textContent = score;
-                
-                // زيادة السرعة
-                increaseSpeed();
-                
-                // إنشاء طعام جديد
-                generateFood();
-            } else {
-                // إزالة الذيل إذا لم يتم أكل الطعام
-                snake.pop();
-            }
-            
-            // رسم اللعبة
-            draw();
-        }
-
-        // حلقة اللعبة الرئيسية
-        function gameLoop() {
-            update();
-        }
-
-        // إنهاء اللعبة
-        function gameOver() {
-            isGameOver = true;
-            clearInterval(gameInterval);
-            
-            // تحديث أفضل نتيجة
-            if (score > highScore) {
-                highScore = score;
-                highScoreValue.textContent = highScore;
-                localStorage.setItem('snakeHighScore', highScore);
-            }
-            
-            // عرض شاشة انتهاء اللعبة
-            finalScore.textContent = score;
-            finalSpeed.textContent = speedMultiplier.toFixed(1) + 'x';
-            gameOverScreen.classList.add('active');
-        }
-
-        // بدء اللعبة
-        function startGame() {
-            if (gameInterval) {
-                clearInterval(gameInterval);
-            }
-            
-            isPaused = false;
-            pauseBtn.textContent = 'إيقاف مؤقت';
-            gameInterval = setInterval(gameLoop, currentSpeed);
-        }
-
-        // إيقاف/استئناف اللعبة
-        function togglePause() {
-            isPaused = !isPaused;
-            pauseBtn.textContent = isPaused ? 'استئناف' : 'إيقاف مؤقت';
-        }
-
-        // إعادة تشغيل اللعبة
-        function restartGame() {
-            clearInterval(gameInterval);
-            initGame();
-            startGame();
-        }
-
-        // التحكم في اتجاه الدودة
-        function changeDirection(newDirection) {
-            // منع الحركة العكسية المباشرة
-            if (
-                (newDirection === 'up' && direction !== 'down') ||
-                (newDirection === 'down' && direction !== 'up') ||
-                (newDirection === 'left' && direction !== 'right') ||
-                (newDirection === 'right' && direction !== 'left')
-            ) {
-                nextDirection = newDirection;
-            }
-        }
-
-        // أحداث لوحة المفاتيح
-        document.addEventListener('keydown', (e) => {
-            switch(e.key) {
-                case 'ArrowUp':
-                    changeDirection('up');
-                    break;
-                case 'ArrowDown':
-                    changeDirection('down');
-                    break;
-                case 'ArrowLeft':
-                    changeDirection('left');
-                    break;
-                case 'ArrowRight':
-                    changeDirection('right');
-                    break;
-                case ' ':
-                    togglePause();
-                    break;
-            }
-        });
-
-        // أحداث الأزرار
-        startBtn.addEventListener('click', startGame);
-        pauseBtn.addEventListener('click', togglePause);
-        restartBtn.addEventListener('click', restartGame);
-        playAgainBtn.addEventListener('click', restartGame);
-
-        // أحداث أزرار التحكم للهواتف
-        upBtn.addEventListener('click', () => changeDirection('up'));
-        leftBtn.addEventListener('click', () => changeDirection('left'));
-        rightBtn.addEventListener('click', () => changeDirection('right'));
-        downBtn.addEventListener('click', () => changeDirection('down'));
-
-        // تهيئة اللعبة عند تحميل الصفحة
-        window.addEventListener('load', () => {
-            initGame();
-            
-            // ضبط حجم الـ canvas عند تغيير حجم النافذة
-            window.addEventListener('resize', () => {
-                canvas.width = canvas.offsetWidth;
-                canvas.height = canvas.offsetHeight;
-                draw();
-            });
-        });
     </script>
 </body>
 </html>
