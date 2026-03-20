@@ -426,8 +426,8 @@
           </div>
           <div class="gift-opened">
             <div class="prize">💵</div>
-            <div class="prize-title">100 دولار</div>
-            <div class="prize-text">هدية رمزية للعرض داخل الصفحة</div>
+            <div class="prize-title">$100</div>
+            <div class="prize-text"></div>
           </div>
         </div>
 
@@ -439,7 +439,7 @@
           <div class="gift-opened">
             <div class="prize">🚗</div>
             <div class="prize-title">سيارة</div>
-            <div class="prize-text">هدية رمزية للعرض داخل الصفحة</div>
+            <div class="prize-text"></div>
           </div>
         </div>
       </div>
