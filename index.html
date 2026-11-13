@@ -1,99 +1,269 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<title>Snake Game</title>
-<style>
-body{
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    height:100vh;
-    background:#222;
-    margin:0;
-}
-canvas{
-    background:#111;
-    border:2px solid #fff;
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BlackCloud | التخزين السحابي</title>
+    <style>
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; }
+        body { background: #0f172a; margin: 0; color: #f8fafc; }
+        .navbar { background: #1e293b; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; }
+        .navbar button { background: transparent; border: none; color: #cbd5e1; font-weight: bold; cursor: pointer; padding: 8px 14px; border-radius: 6px; font-size: 15px; }
+        .navbar button.active, .navbar button:hover { background: #3b82f6; color: white; }
+        .container { max-width: 550px; margin: 40px auto; background: #1e293b; padding: 30px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
+        h2 { margin-top: 0; border-bottom: 1px solid #334155; padding-bottom: 12px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 6px; color: #94a3b8; font-size: 14px; }
+        input { width: 100%; padding: 12px; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 8px; }
+        .captcha-box { background: #0f172a; padding: 12px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px dashed #475569; }
+        .btn { width: 100%; padding: 12px; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; color: white; margin-top: 10px; }
+        .btn-blue { background: #2563eb; }
+        .btn-green { background: #10b981; }
+        .hidden { display: none; }
+        .alert { padding: 12px; border-radius: 8px; margin-bottom: 15px; font-size: 14px; line-height: 1.6; }
+        .alert-err { background: #7f1d1d; color: #fecaca; border: 1px solid #b91c1c; }
+        .alert-ok { background: #064e3b; color: #a7f3d0; border: 1px solid #059669; }
+        .promo-box { background: linear-gradient(135deg, #1e293b, #0f172a); border: 1px solid #f59e0b; padding: 18px; border-radius: 10px; margin-top: 25px; text-align: center; }
+        .promo-box h4 { margin: 0 0 8px 0; color: #fbbf24; font-size: 16px; }
+        .promo-box p { margin: 0 0 14px 0; font-size: 14px; color: #cbd5e1; line-height: 1.5; }
+        .wa-btn { display: inline-block; background: #25d366; color: #0f172a; font-weight: bold; padding: 10px 20px; border-radius: 25px; text-decoration: none; font-size: 14px; margin-bottom: 15px; transition: 0.2s; }
+        .wa-btn:hover { background: #20bd5a; }
+        .activate-row { display: flex; gap: 8px; margin-top: 10px; border-top: 1px solid #334155; padding-top: 14px; }
+        .activate-row input { padding: 10px; text-align: center; letter-spacing: 2px; font-weight: bold; }
+        .activate-row button { background: #f59e0b; color: #0f172a; border: none; padding: 0 18px; border-radius: 8px; font-weight: bold; cursor: pointer; white-space: nowrap; }
+        .file-item { display: flex; justify-content: space-between; align-items: center; background: #0f172a; padding: 12px 15px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #334155; }
+        .dl-btn { background: #3b82f6; color: white; padding: 6px 14px; text-decoration: none; border-radius: 6px; font-size: 14px; }
+        .plan-tag { font-size: 12px; background: #334155; padding: 3px 8px; border-radius: 4px; margin-right: 6px; color: #38bdf8; }
+    </style>
 </head>
 <body>
 
-<canvas id="game" width="400" height="400"></canvas>
+<div id="navbar" class="navbar hidden">
+    <div>☁️ <strong>BlackCloud</strong> (<span id="userDisplay"></span>) <span id="planBadge" class="plan-tag"></span></div>
+    <div>
+        <button id="tabUpload" class="active" onclick="showTab('upload')">⬆️ رفع ملف</button>
+        <button id="tabFiles" onclick="showTab('files')">📁 ملفاتي</button>
+        <button onclick="logout()" style="color: #f87171;">خروج</button>
+    </div>
+</div>
+
+<div class="container">
+    <div id="msgBox" class="alert hidden"></div>
+
+    <!-- صفحة الدخول -->
+    <div id="loginSection">
+        <h2>☁️ بوابة BlackCloud</h2>
+        <div class="form-group">
+            <label>اسم المستخدم</label>
+            <input type="text" id="username">
+        </div>
+        <div class="form-group">
+            <label>كلمة المرور</label>
+            <input type="password" id="password">
+        </div>
+        <div id="inviteGroup" class="form-group hidden">
+            <label>كود الدعوة السري (مطلوب للحسابات الجديدة فقط)</label>
+            <input type="text" id="inviteCode" placeholder="أدخل كود الدعوة">
+        </div>
+        <div class="form-group">
+            <label>التحقق البشري (أجب عن المعادلة)</label>
+            <div class="captcha-box">
+                <span id="captchaQ" style="font-weight:bold; direction:ltr;"></span>
+                <input type="number" id="captchaA" placeholder="الناتج" style="width: 110px;">
+            </div>
+        </div>
+        <button class="btn btn-blue" onclick="submitAuth()">تسجيل الدخول</button>
+        <button class="btn btn-green" onclick="toggleRegister()">إنشاء حساب جديد</button>
+    </div>
+
+    <!-- صفحة الرفع -->
+    <div id="uploadSection" class="hidden">
+        <h2>⬆️ رفع الملفات إلى السحابة</h2>
+        <p id="limitInfo" style="color: #94a3b8; font-size: 13px; margin-bottom: 15px;"></p>
+        <div class="form-group">
+            <input type="file" id="fileInput" style="padding: 25px; border: 2px dashed #3b82f6; text-align: center;">
+        </div>
+        <button class="btn btn-blue" onclick="uploadFile()">بدء الرفع والحفظ</button>
+
+        <!-- بطاقة الترقية وكود التفعيل -->
+        <div id="upgradeCard" class="promo-box">
+            <h4>🚀 احصل على النسخة الكاملة (Pro)</h4>
+            <p>الباقة المجانية تتيح <strong>5 ملفات</strong> بحد أقصى <strong>10 ميجابايت</strong> للملف.<br>
+            للترقية مقابل <strong>20$</strong> راسلنا على واتساب (<strong>1cw1</strong>) للحصول على كود التفعيل:</p>
+            <a id="waLink" href="#" target="_blank" class="wa-btn">💬 مراسلة مباشرة عبر WhatsApp</a>
+            
+            <div class="activate-row">
+                <input type="text" id="proCodeInput" placeholder="أدخل كود التفعيل هنا">
+                <button onclick="activatePro()">تفعيل</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- صفحة الملفات -->
+    <div id="filesSection" class="hidden">
+        <h2>📁 الملفات المحفوظة (<span id="fileCounter">0</span>)</h2>
+        <div id="filesList"></div>
+    </div>
+</div>
 
 <script>
-const canvas = document.getElementById("game");
-const ctx = canvas.getContext("2d");
+    const API_URL = "https://remove-openings-orchestra-goto.trycloudflare.com";
+    const WHATSAPP_NUMBER = "9647718419996";
 
-const box = 20;
-let snake = [{x: 10 * box, y: 10 * box}];
-let direction = "RIGHT";
+    let num1, num2, isRegisterMode = false;
+    let currentUser = JSON.parse(localStorage.getItem('bc_user'));
 
-let food = {
-    x: Math.floor(Math.random() * 20) * box,
-    y: Math.floor(Math.random() * 20) * box
-};
-
-let score = 0;
-
-document.addEventListener("keydown", e => {
-    if (e.key === "ArrowUp" && direction !== "DOWN") direction = "UP";
-    if (e.key === "ArrowDown" && direction !== "UP") direction = "DOWN";
-    if (e.key === "ArrowLeft" && direction !== "RIGHT") direction = "LEFT";
-    if (e.key === "ArrowRight" && direction !== "LEFT") direction = "RIGHT";
-});
-
-function draw() {
-    ctx.fillStyle = "#111";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    snake.forEach((segment, index) => {
-        ctx.fillStyle = index === 0 ? "lime" : "green";
-        ctx.fillRect(segment.x, segment.y, box, box);
-    });
-
-    ctx.fillStyle = "red";
-    ctx.fillRect(food.x, food.y, box, box);
-
-    let headX = snake[0].x;
-    let headY = snake[0].y;
-
-    if (direction === "UP") headY -= box;
-    if (direction === "DOWN") headY += box;
-    if (direction === "LEFT") headX -= box;
-    if (direction === "RIGHT") headX += box;
-
-    if (headX === food.x && headY === food.y) {
-        score++;
-        food = {
-            x: Math.floor(Math.random() * 20) * box,
-            y: Math.floor(Math.random() * 20) * box
-        };
-    } else {
-        snake.pop();
+    function newCaptcha() {
+        num1 = Math.floor(Math.random() * 9) + 1;
+        num2 = Math.floor(Math.random() * 9) + 1;
+        document.getElementById('captchaQ').innerText = `${num1} + ${num2} = ?`;
+        document.getElementById('captchaA').value = '';
     }
 
-    const newHead = {x: headX, y: headY};
+    function showMsg(text, isError = true) {
+        const box = document.getElementById('msgBox');
+        box.innerText = text;
+        box.className = `alert ${isError ? 'alert-err' : 'alert-ok'}`;
+    }
 
-    if (
-        headX < 0 || headY < 0 ||
-        headX >= canvas.width || headY >= canvas.height ||
-        snake.some(seg => seg.x === headX && seg.y === headY)
-    ) {
-        alert("انتهت اللعبة! النقاط: " + score);
+    function toggleRegister() {
+        isRegisterMode = !isRegisterMode;
+        document.getElementById('inviteGroup').classList.toggle('hidden', !isRegisterMode);
+        if (isRegisterMode) showMsg("أدخل كود الدعوة السري ثم اضغط إنشاء حساب جديد.", false);
+    }
+
+    async function submitAuth() {
+        if (parseInt(document.getElementById('captchaA').value) !== (num1 + num2)) {
+            newCaptcha();
+            return showMsg("إجابة التحقق البشري غير صحيحة!");
+        }
+        const mode = isRegisterMode ? 'register' : 'login';
+        try {
+            const res = await fetch(`${API_URL}/api/auth`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: mode,
+                    username: document.getElementById('username').value,
+                    password: document.getElementById('password').value,
+                    invite_code: document.getElementById('inviteCode').value
+                })
+            });
+            const data = await res.json();
+            if (!res.ok) { newCaptcha(); return showMsg(data.error); }
+
+            localStorage.setItem('bc_user', JSON.stringify(data));
+            currentUser = data;
+            initApp();
+        } catch (e) {
+            showMsg("تعذر الاتصال بالسيرفر، تأكد أن جهاز السيرفر والنفق يعملان.");
+        }
+    }
+
+    async function activatePro() {
+        const code = document.getElementById('proCodeInput').value;
+        if (!code) return showMsg("أدخل كود التفعيل أولاً!");
+        try {
+            const res = await fetch(`${API_URL}/api/activate`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_id: currentUser.user_id, code: code })
+            });
+            const data = await res.json();
+            if (!res.ok) return showMsg(data.error);
+
+            currentUser.is_pro = true;
+            localStorage.setItem('bc_user', JSON.stringify(currentUser));
+            updatePlanUI();
+            showMsg(data.message, false);
+        } catch (e) {
+            showMsg("تعذر الاتصال بالسيرفر للتحقق من الكود.");
+        }
+    }
+
+    async function uploadFile() {
+        const fileInput = document.getElementById('fileInput');
+        if (!fileInput.files.length) return showMsg("اختر ملفاً أولاً!");
+
+        const file = fileInput.files[0];
+        if (!currentUser.is_pro && file.size > 10 * 1024 * 1024) {
+            return showMsg("⚠️ حجم الملف يتجاوز 10 ميجابايت! للترقية بسعر 20$ اضغط على زر الواتساب بالأسفل.");
+        }
+
+        const formData = new FormData();
+        formData.append('user_id', currentUser.user_id);
+        formData.append('file', file);
+
+        showMsg("جاري الرفع والحفظ...", false);
+        try {
+            const res = await fetch(`${API_URL}/api/upload`, { method: 'POST', body: formData });
+            const data = await res.json();
+            if (!res.ok) return showMsg(data.error);
+            fileInput.value = '';
+            showMsg(data.message, false);
+        } catch (e) {
+            showMsg("فشل رفع الملف، تأكد من اتصال السيرفر.");
+        }
+    }
+
+    async function loadFiles() {
+        const list = document.getElementById('filesList');
+        list.innerHTML = "جاري تحميل القائمة...";
+        try {
+            const res = await fetch(`${API_URL}/api/files/${currentUser.user_id}`);
+            const data = await res.json();
+            currentUser.is_pro = data.is_pro;
+            localStorage.setItem('bc_user', JSON.stringify(currentUser));
+            updatePlanUI();
+
+            document.getElementById('fileCounter').innerText = data.is_pro ? data.count : `${data.count} / 5`;
+            if (!data.files.length) { list.innerHTML = "<p style='color:#94a3b8'>لا توجد ملفات محفوظة حالياً.</p>"; return; }
+            list.innerHTML = data.files.map(f => `
+                <div class="file-item">
+                    <span>📄 ${f.filename}</span>
+                    <a class="dl-btn" href="${API_URL}/api/download/${currentUser.user_id}/${f.id}">⬇️ تنزيل</a>
+                </div>
+            `).join('');
+        } catch (e) {
+            list.innerHTML = "تعذر جلب الملفات.";
+        }
+    }
+
+    function updatePlanUI() {
+        document.getElementById('planBadge').innerText = currentUser.is_pro ? "باقة Pro 👑" : "باقة مجانية";
+        document.getElementById('limitInfo').innerText = currentUser.is_pro
+            ? "حسابك مُرقّى (Pro): يمكنك رفع عدد غير محدود من الملفات."
+            : "الحد المتاح لحسابك: 5 ملفات كحد أقصى (بحجم لا يتجاوز 10 ميجابايت للملف).";
+        document.getElementById('upgradeCard').classList.toggle('hidden', currentUser.is_pro);
+
+        const waText = encodeURIComponent(`مرحباً، أرغب في شراء كود تفعيل BlackCloud Pro (20$) لحسابي: ${currentUser.username}`);
+        document.getElementById('waLink').href = `https://wa.me/${WHATSAPP_NUMBER}?text=${waText}`;
+    }
+
+    function showTab(tab) {
+        document.getElementById('msgBox').classList.add('hidden');
+        document.getElementById('uploadSection').classList.toggle('hidden', tab !== 'upload');
+        document.getElementById('filesSection').classList.toggle('hidden', tab !== 'files');
+        document.getElementById('tabUpload').classList.toggle('active', tab === 'upload');
+        document.getElementById('tabFiles').classList.toggle('active', tab === 'files');
+        if (tab === 'files') loadFiles();
+    }
+
+    function initApp() {
+        if (!currentUser) { newCaptcha(); return; }
+        document.getElementById('loginSection').classList.add('hidden');
+        document.getElementById('navbar').classList.remove('hidden');
+        document.getElementById('userDisplay').innerText = currentUser.username;
+        updatePlanUI();
+        showTab('upload');
+    }
+
+    function logout() {
+        localStorage.removeItem('bc_user');
         location.reload();
     }
 
-    snake.unshift(newHead);
-
-    ctx.fillStyle = "white";
-    ctx.font = "20px Arial";
-    ctx.fillText("Score: " + score, 10, 25);
-}
-
-setInterval(draw, 100);
+    initApp();
 </script>
-
 </body>
 </html>
