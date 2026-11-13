@@ -61,10 +61,6 @@
             <label>كلمة المرور</label>
             <input type="password" id="password">
         </div>
-        <div id="inviteGroup" class="form-group hidden">
-            <label>كود الدعوة السري (مطلوب للحسابات الجديدة فقط)</label>
-            <input type="text" id="inviteCode" placeholder="أدخل كود الدعوة">
-        </div>
         <div class="form-group">
             <label>التحقق البشري (أجب عن المعادلة)</label>
             <div class="captcha-box">
@@ -72,8 +68,8 @@
                 <input type="number" id="captchaA" placeholder="الناتج" style="width: 110px;">
             </div>
         </div>
-        <button class="btn btn-blue" onclick="submitAuth()">تسجيل الدخول</button>
-        <button class="btn btn-green" onclick="toggleRegister()">إنشاء حساب جديد</button>
+        <button class="btn btn-blue" onclick="submitAuth('login')">تسجيل الدخول</button>
+        <button class="btn btn-green" onclick="submitAuth('register')">إنشاء حساب جديد</button>
     </div>
 
     <!-- صفحة الرفع -->
@@ -110,7 +106,7 @@
     const API_URL = "https://remove-openings-orchestra-goto.trycloudflare.com";
     const WHATSAPP_NUMBER = "9647718419996";
 
-    let num1, num2, isRegisterMode = false;
+    let num1, num2;
     let currentUser = JSON.parse(localStorage.getItem('bc_user'));
 
     function newCaptcha() {
@@ -126,27 +122,19 @@
         box.className = `alert ${isError ? 'alert-err' : 'alert-ok'}`;
     }
 
-    function toggleRegister() {
-        isRegisterMode = !isRegisterMode;
-        document.getElementById('inviteGroup').classList.toggle('hidden', !isRegisterMode);
-        if (isRegisterMode) showMsg("أدخل كود الدعوة السري ثم اضغط إنشاء حساب جديد.", false);
-    }
-
-    async function submitAuth() {
+    async function submitAuth(action) {
         if (parseInt(document.getElementById('captchaA').value) !== (num1 + num2)) {
             newCaptcha();
             return showMsg("إجابة التحقق البشري غير صحيحة!");
         }
-        const mode = isRegisterMode ? 'register' : 'login';
         try {
             const res = await fetch(`${API_URL}/api/auth`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    action: mode,
+                    action: action,
                     username: document.getElementById('username').value,
-                    password: document.getElementById('password').value,
-                    invite_code: document.getElementById('inviteCode').value
+                    password: document.getElementById('password').value
                 })
             });
             const data = await res.json();
