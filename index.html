@@ -31,8 +31,11 @@
         .activate-row { display: flex; gap: 8px; margin-top: 10px; border-top: 1px solid #334155; padding-top: 14px; }
         .activate-row input { padding: 10px; text-align: center; letter-spacing: 2px; font-weight: bold; }
         .activate-row button { background: #f59e0b; color: #0f172a; border: none; padding: 0 18px; border-radius: 8px; font-weight: bold; cursor: pointer; white-space: nowrap; }
-        .file-item { display: flex; justify-content: space-between; align-items: center; background: #0f172a; padding: 12px 15px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #334155; }
-        .dl-btn { background: #3b82f6; color: white; padding: 6px 14px; text-decoration: none; border-radius: 6px; font-size: 14px; }
+        .file-item { display: flex; justify-content: space-between; align-items: center; background: #0f172a; padding: 12px 15px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #334155; gap: 10px; }
+        .file-actions { display: flex; gap: 6px; shrink: 0; }
+        .dl-btn { background: #3b82f6; color: white; padding: 6px 12px; text-decoration: none; border-radius: 6px; font-size: 13px; font-weight: bold; }
+        .del-btn { background: #dc2626; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer; }
+        .del-btn:hover { background: #b91c1c; }
         .plan-tag { font-size: 12px; background: #334155; padding: 3px 8px; border-radius: 4px; margin-right: 6px; color: #38bdf8; }
     </style>
 </head>
@@ -103,7 +106,7 @@
 </div>
 
 <script>
-    const API_URL = "https://testimonials-trademark-cove-solve.trycloudflare.com";
+    const API_URL = "https://virgin-charts-jobs-considerable.trycloudflare.com";
     const WHATSAPP_NUMBER = "9647718419996";
 
     let num1, num2;
@@ -194,6 +197,21 @@
         }
     }
 
+    async function deleteFile(fileId, filename) {
+        if (!confirm(`هل أنت متأكد من حذف الملف "${filename}" نهائياً؟`)) return;
+        try {
+            const res = await fetch(`${API_URL}/api/delete/${currentUser.user_id}/${fileId}`, {
+                method: 'DELETE'
+            });
+            const data = await res.json();
+            if (!res.ok) return showMsg(data.error);
+            showMsg(data.message, false);
+            loadFiles();
+        } catch (e) {
+            showMsg("تعذر حذف الملف، تأكد من اتصال السيرفر.");
+        }
+    }
+
     async function loadFiles() {
         const list = document.getElementById('filesList');
         list.innerHTML = "جاري تحميل القائمة...";
@@ -208,8 +226,11 @@
             if (!data.files.length) { list.innerHTML = "<p style='color:#94a3b8'>لا توجد ملفات محفوظة حالياً.</p>"; return; }
             list.innerHTML = data.files.map(f => `
                 <div class="file-item">
-                    <span>📄 ${f.filename}</span>
-                    <a class="dl-btn" href="${API_URL}/api/download/${currentUser.user_id}/${f.id}">⬇️ تنزيل</a>
+                    <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">📄 ${f.filename}</span>
+                    <div class="file-actions">
+                        <a class="dl-btn" href="${API_URL}/api/download/${currentUser.user_id}/${f.id}">⬇️ تنزيل</a>
+                        <button class="del-btn" onclick="deleteFile(${f.id}, '${f.filename}')">🗑️ حذف</button>
+                    </div>
                 </div>
             `).join('');
         } catch (e) {
